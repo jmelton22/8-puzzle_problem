@@ -15,15 +15,35 @@ def informed_search(start, goal=tuple(range(9))):
              if queue is empty without reaching goal state, return None.
     """
     visited, unexplored, moves = [], [], []
-    heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal, 'manhattan')))
+    heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal)))
 
     while unexplored:
         state = heapq.heappop(unexplored)  # Search through next state in queue
         visited.append(state)
 
-        if len(visited) == 25000:
-            print('25,000 states visited without solution')
-            print('Exiting.')
+        if len(visited) % 5000 == 0:
+            print('States visited:', len(visited))
+            print('Queue size:', len(unexplored))
+
+        if len(visited) == 20000:
+            print('-' * 7)
+            print('20,000 states visited without finding solution. Exiting.')
+
+            # TODO: Current allows for multiple states with min h value (unnecessary?)
+            minval = None
+            indices = []
+            for i, val in enumerate(visited):
+                if minval is None or val.h < minval:
+                    indices = [i]
+                    minval = val.h
+                elif val == minval:
+                    indices.append(i)
+
+            print('Minimum h reached:', minval)
+            for i in indices:
+                print(visited[i])
+                print('Number of moves:', visited[i].g)
+
             break
 
         if state.h == 0:
@@ -37,7 +57,7 @@ def informed_search(start, goal=tuple(range(9))):
 
 def moves_list(state, moves):
     """
-        Recursive function to determine the move-set from the goal state to starting state
+        Recursive function to determine the move-set from the goal state to the starting state
         by traversing the parent states until reaching the start state.
     """
     moves.append(state)
@@ -52,7 +72,7 @@ def heuristic(current, goal, method='manhattan'):
         Calculates the heuristic cost of a given state to the goal state.
         Choose from 3 different methods:
             - Tiles out of place
-            - Manhattan distance
+            - Manhattan distance (default)
             - Euclidean distance
     """
     if method == 'tiles_out_of_place':
@@ -93,13 +113,13 @@ def expand_state(state, goal, visited, unexplored):
 
     for s in state.moves():
         # Path cost of new board state is the path cost to the parent state + 1
-        temp_state = State(s, state, state.g + 1, heuristic(s, goal, 'manhattan'))
+        temp_state = State(s, state, state.g + 1, heuristic(s, goal))
 
+        # TODO: Improve redundant iterating through unexplored queue
         if in_unexplored(s, unexplored):
-            for duplicate in [x for x in unexplored if x.values == s]:
-                if duplicate.f > temp_state.f:
-                    unexplored.remove(duplicate)
-                    heapq.heappush(unexplored, temp_state)
+            for duplicate in [x for x in unexplored if x.values == s and x.f > temp_state.f]:
+                unexplored.remove(duplicate)
+                heapq.heappush(unexplored, temp_state)
         elif not in_visited(s, visited):
             heapq.heappush(unexplored, temp_state)
 
@@ -115,15 +135,17 @@ def main():
     # start2 = [7, 2, 4, 5, 0, 6, 8, 3, 1]
     # fname = 'moves2.txt'
 
+    print('\n'.join(' '.join(str(x) if x != 0 else '_' for x in start[n:n+3]) for n in range(0, 9, 3)))
+    print('-' * 7)
+
     solution = informed_search(start)
     fname = 'moves.txt'
+    print('-' * 7)
 
     if solution is None:
         print('No path found.')
     else:
-        # Clear file from previous runs
-        with open(fname, 'w') as f:
-            f.close()
+        open(fname, 'w').close()  # Clear file from previous runs
 
         for state in solution[::-1]:
             state.output_board(fname)
