@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import heapq
+import math
 from random import shuffle
 from state import State
 
 
 def informed_search(start, goal=tuple(range(9))):
     visited, unexplored, moves = [], [], []
-    heuristic = tiles_out_of_place
-    heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal)))
+    heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal, 'manhattan')))
 
     while unexplored:
         state = heapq.heappop(unexplored)
@@ -21,7 +21,7 @@ def informed_search(start, goal=tuple(range(9))):
         if state.h == 0:
             return moves_list(state, moves)
         else:
-            expand_state(state, goal, visited, unexplored, heuristic)
+            expand_state(state, goal, visited, unexplored)
 
     return None
 
@@ -34,19 +34,27 @@ def moves_list(state, moves):
         return moves_list(state.parent, moves)
 
 
-def tiles_out_of_place(current, goal):
-    return sum([1 for i in range(9) if current.index(i) != goal.index(i)])
+def heuristic(current, goal, method='manhattan'):
+    if method == 'tiles_out_of_place':
+        return sum([1 for i in range(9) if current.index(i) != goal.index(i)])
+
+    coord_dict = {0: [0, 0], 1: [0, 1], 2: [0, 2],
+                  3: [1, 0], 4: [1, 1], 5: [1, 2],
+                  6: [2, 0], 7: [2, 1], 8: [2, 2]}
+    total = 0
+    for num in range(9):
+        curr_board_index = coord_dict[current.index(num)]
+        goal_board_index = coord_dict[goal.index(num)]
+
+        if method == 'manhattan':
+            total += sum([abs(d1 - d2) for d1, d2 in zip(curr_board_index, goal_board_index)])
+        else:
+            total += math.sqrt(sum([(d1 - d2) ** 2 for d1, d2 in zip(curr_board_index, goal_board_index)]))
+
+    return total
 
 
-def manhattan_distance(current, goal):
-    pass
-
-
-def euclidean_distance(current, goal):
-    pass
-
-
-def expand_state(state, goal, visited, unexplored, heuristic):
+def expand_state(state, goal, visited, unexplored):
     def in_unexplored(current, q):
         return current in [x.values for x in q]
 
@@ -54,7 +62,7 @@ def expand_state(state, goal, visited, unexplored, heuristic):
         return current in [x.values for x in l]
 
     for s in state.moves():
-        temp_state = State(s, state, state.g + 1, heuristic(s, goal))
+        temp_state = State(s, state, state.g + 1, heuristic(s, goal, 'manhattan'))
 
         if in_unexplored(s, unexplored):
             for duplicate in [x for x in unexplored if x.values == s]:
@@ -66,28 +74,32 @@ def expand_state(state, goal, visited, unexplored, heuristic):
 
 
 def main():
-    # start = list(range(9))
-    # shuffle(start)
+    start = list(range(9))
+    shuffle(start)
 
-    start = [2, 8, 3, 1, 6, 4, 7, 0, 5]
-    goal = (1, 2, 3, 8, 6, 4, 7, 5, 0)
+    # start = [2, 8, 3, 1, 6, 4, 7, 0, 5]
+    # goal = (1, 2, 3, 8, 6, 4, 7, 5, 0)
+    # fname = 'moves1.txt'
 
     # start2 = [7, 2, 4, 5, 0, 6, 8, 3, 1]
+    # fname = 'moves2.txt'
 
     fname = 'moves.txt'
     with open(fname, 'w') as f:
         f.close()
 
-    solution = informed_search(start, goal)
+    solution = informed_search(start)
 
     if solution is None:
         print('No path found.')
     else:
-
         for state in solution[::-1]:
-            state.output_board('moves.txt')
+            state.output_board(fname)
             print(state)
             print()
+
+        with open(fname, 'a') as f:
+            f.write('Number of moves: {}'.format(len(solution) - 1))
 
         print('Number of moves:', len(solution) - 1)
 
