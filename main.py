@@ -21,8 +21,9 @@ def informed_search(start, goal=tuple(range(9))):
         state = heapq.heappop(unexplored)  # Search through next state in queue
         visited.append(state)
 
-        if len(visited) == 10000:
-            print('Max move reached:', max(visited, key=lambda x: x.g).g)
+        if len(visited) == 25000:
+            print('25,000 states visited without solution')
+            print('Exiting.')
             break
 
         if state.h == 0:
@@ -114,15 +115,16 @@ def main():
     # start2 = [7, 2, 4, 5, 0, 6, 8, 3, 1]
     # fname = 'moves2.txt'
 
-    fname = 'moves.txt'
-    with open(fname, 'w') as f:
-        f.close()
-
     solution = informed_search(start)
+    fname = 'moves.txt'
 
     if solution is None:
         print('No path found.')
     else:
+        # Clear file from previous runs
+        with open(fname, 'w') as f:
+            f.close()
+
         for state in solution[::-1]:
             state.output_board(fname)
             print(state)
