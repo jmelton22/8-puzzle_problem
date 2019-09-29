@@ -7,11 +7,18 @@ from state import State
 
 
 def informed_search(start, goal=tuple(range(9))):
+    """
+        Iterative A* search function for 8-puzzle problem. Exits when goal state has been reached or
+        when queue of unexplored states is empty.
+
+    :return: if goal state is reached, return a list of board states back to the starting state.
+             if queue is empty without reaching goal state, return None.
+    """
     visited, unexplored, moves = [], [], []
     heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal, 'manhattan')))
 
     while unexplored:
-        state = heapq.heappop(unexplored)
+        state = heapq.heappop(unexplored)  # Search through next state in queue
         visited.append(state)
 
         if len(visited) == 10000:
@@ -21,12 +28,17 @@ def informed_search(start, goal=tuple(range(9))):
         if state.h == 0:
             return moves_list(state, moves)
         else:
+            # Add board states of valid possible moves to unexplored queue
             expand_state(state, goal, visited, unexplored)
 
     return None
 
 
 def moves_list(state, moves):
+    """
+        Recursive function to determine the move-set from the goal state to starting state
+        by traversing the parent states until reaching the start state.
+    """
     moves.append(state)
     if state.parent is None:
         return moves
@@ -35,9 +47,17 @@ def moves_list(state, moves):
 
 
 def heuristic(current, goal, method='manhattan'):
+    """
+        Calculates the heuristic cost of a given state to the goal state.
+        Choose from 3 different methods:
+            - Tiles out of place
+            - Manhattan distance
+            - Euclidean distance
+    """
     if method == 'tiles_out_of_place':
         return sum([1 for i in range(9) if current.index(i) != goal.index(i)])
 
+    # Dict to convert flat number list to 3x3 board indices for distance calculation
     coord_dict = {0: [0, 0], 1: [0, 1], 2: [0, 2],
                   3: [1, 0], 4: [1, 1], 5: [1, 2],
                   6: [2, 0], 7: [2, 1], 8: [2, 2]}
@@ -55,6 +75,15 @@ def heuristic(current, goal, method='manhattan'):
 
 
 def expand_state(state, goal, visited, unexplored):
+    """
+        Given a state, push the board states of its valid possible moves to unexplored queue.
+        Possible moves = swapping the blank tile with one of its neighboring tiles.
+        - Board states are added if they have not already been visited and are not already in the queue
+
+        - Or they have the same board as a state in the queue but with a lower path cost
+        - In which case, the board state with higher path cost is removed from queue and
+        the new board state is pushed to the queue
+    """
     def in_unexplored(current, q):
         return current in [x.values for x in q]
 
@@ -62,6 +91,7 @@ def expand_state(state, goal, visited, unexplored):
         return current in [x.values for x in l]
 
     for s in state.moves():
+        # Path cost of new board state is the path cost to the parent state + 1
         temp_state = State(s, state, state.g + 1, heuristic(s, goal, 'manhattan'))
 
         if in_unexplored(s, unexplored):

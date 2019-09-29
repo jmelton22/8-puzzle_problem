@@ -13,10 +13,16 @@ class State:
         return self.f < other.f
 
     def moves(self):
+        """
+            Determines new board states of all possible moves of the given state
+
+        :return: List of new board states from each possible move
+        """
         def swap(l, a, b):
             l[a], l[b] = l[b], l[a]
 
         z = self.values.index(0)
+        # Dict of possible tile indices for a move given the index of the 0 tile
         moves_dict = {0: [1, 3],
                       1: [0, 2, 4],
                       2: [1, 5],
@@ -28,8 +34,8 @@ class State:
                       8: [5, 7]}
         moves = []
         for move in moves_dict[z]:
-            new_state = self.values[:]
-            swap(new_state, z, move)
+            new_state = self.values[:]  # Create copy of initial board state
+            swap(new_state, z, move)  # Perform move, updating board state
             moves.append(new_state)
 
         return moves
