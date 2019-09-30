@@ -114,16 +114,19 @@ def expand_state(state, goal, visited, unexplored):
 
 
 def main():
-    start = list(range(9))
-    shuffle(start)
-    fname = 'moves.txt'
+    # Generate random starting board
+    # start = list(range(9))
+    # shuffle(start)
+    # fname = 'moves.txt'
 
+    # Case 1 from assignment
     # start = [2, 8, 3, 1, 6, 4, 7, 0, 5]
     # goal = (1, 2, 3, 8, 6, 4, 7, 5, 0)
     # fname = 'moves1.txt'
 
-    # start2 = [7, 2, 4, 5, 0, 6, 8, 3, 1]
-    # fname = 'moves2.txt'
+    # Case 2 from assignment (default goal)
+    start = [7, 2, 4, 5, 0, 6, 8, 3, 1]
+    fname = 'moves2.txt'
 
     print('\n'.join(' '.join(str(x) if x != 0 else '_' for x in start[n:n+3]) for n in range(0, 9, 3)))
     print('-' * 7)
