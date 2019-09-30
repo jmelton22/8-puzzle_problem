@@ -11,8 +11,8 @@ def informed_search(start, goal=tuple(range(9)), limit=10000):
         Iterative A* search function for 8-puzzle problem. Exits when goal state has been reached or
         when queue of unexplored states is empty.
 
-    :return: if goal state is reached, return a list of board states back to the starting state.
-             if queue is empty without reaching goal state, return None.
+    :return: if goal state is reached, returns a list of board states back to the starting state.
+             if queue is empty without reaching goal state, returns None.
     """
     visited, unexplored, moves = [], [], []
     heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal)))
@@ -26,7 +26,7 @@ def informed_search(start, goal=tuple(range(9)), limit=10000):
             print('Queue size:', len(unexplored))
         if len(visited) == limit:
             print('-' * 7)
-            print(limit, 'states visited without finding solution. Exiting.')
+            print('{:,} states visited without finding solution. Exiting.'.format(limit))
 
             min_state = min(visited, key=lambda x: x.h)
 
@@ -64,7 +64,7 @@ def heuristic(current, goal, method='manhattan'):
             - Manhattan distance (default)
             - Euclidean distance
     """
-    if method == 'tiles_out_of_place':
+    if method == 'tiles':
         return sum([1 for i in range(9) if current.index(i) != goal.index(i)])
 
     # Dict to convert flat number list to 3x3 board indices for distance calculation
@@ -104,9 +104,9 @@ def expand_state(state, goal, visited, unexplored):
         # Path cost of new board state is the path cost to the parent state + 1
         temp_state = State(s, state, state.g + 1, heuristic(s, goal))
 
-        # TODO: Improve redundant iterating through unexplored queue
-        if in_unexplored(s, unexplored):
-            for duplicate in [x for x in unexplored if x.values == s and x.f > temp_state.f]:
+        duplicate_board_states = [x for x in unexplored if x.values == s]
+        if duplicate_board_states:
+            for duplicate in (x for x in duplicate_board_states if x.f > temp_state.f):
                 unexplored.remove(duplicate)
                 heapq.heappush(unexplored, temp_state)
         elif not in_visited(s, visited):
@@ -116,6 +116,7 @@ def expand_state(state, goal, visited, unexplored):
 def main():
     start = list(range(9))
     shuffle(start)
+    fname = 'moves.txt'
 
     # start = [2, 8, 3, 1, 6, 4, 7, 0, 5]
     # goal = (1, 2, 3, 8, 6, 4, 7, 5, 0)
@@ -128,7 +129,6 @@ def main():
     print('-' * 7)
 
     solution = informed_search(start)
-    fname = 'moves.txt'
     print('-' * 7)
 
     if solution is None:
