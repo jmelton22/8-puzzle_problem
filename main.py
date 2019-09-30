@@ -6,7 +6,7 @@ from random import shuffle
 from state import State
 
 
-def informed_search(start, goal=tuple(range(9))):
+def informed_search(start, goal=tuple(range(9)), limit=10000):
     """
         Iterative A* search function for 8-puzzle problem. Exits when goal state has been reached or
         when queue of unexplored states is empty.
@@ -18,32 +18,21 @@ def informed_search(start, goal=tuple(range(9))):
     heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal)))
 
     while unexplored:
-        state = heapq.heappop(unexplored)  # Search through next state in queue
+        state = heapq.heappop(unexplored)
         visited.append(state)
 
-        if len(visited) % 5000 == 0:
+        if len(visited) % (limit/10) == 0:
             print('States visited:', len(visited))
             print('Queue size:', len(unexplored))
-
-        if len(visited) == 20000:
+        if len(visited) == limit:
             print('-' * 7)
-            print('20,000 states visited without finding solution. Exiting.')
+            print(limit, 'states visited without finding solution. Exiting.')
 
-            # TODO: Current allows for multiple states with min h value (unnecessary?)
-            minval = None
-            indices = []
-            for i, val in enumerate(visited):
-                if minval is None or val.h < minval:
-                    indices = [i]
-                    minval = val.h
-                elif val == minval:
-                    indices.append(i)
+            min_state = min(visited, key=lambda x: x.h)
 
-            print('Minimum h reached:', minval)
-            for i in indices:
-                print(visited[i])
-                print('Number of moves:', visited[i].g)
-
+            print('Minimum h reached:', min_state.h)
+            print(min_state)
+            print('Number of moves:', min_state.g)
             break
 
         if state.h == 0:
@@ -70,7 +59,7 @@ def moves_list(state, moves):
 def heuristic(current, goal, method='manhattan'):
     """
         Calculates the heuristic cost of a given state to the goal state.
-        Choose from 3 different methods:
+        Three possible methods:
             - Tiles out of place
             - Manhattan distance (default)
             - Euclidean distance
