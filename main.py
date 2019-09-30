@@ -6,7 +6,7 @@ from random import shuffle
 from state import State
 
 
-def informed_search(start, goal=tuple(range(9)), limit=10000):
+def informed_search(start, goal=tuple(range(9)), limit=10000, h_method='manhattan'):
     """
         Iterative A* search function for 8-puzzle problem. Exits when goal state has been reached or
         when queue of unexplored states is empty.
@@ -15,15 +15,15 @@ def informed_search(start, goal=tuple(range(9)), limit=10000):
              if queue is empty without reaching goal state, returns None.
     """
     visited, unexplored, moves = [], [], []
-    heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal)))
+    print('Search method: A*')
+    print('Heuristic:', h_method)
+
+    heapq.heappush(unexplored, State(start, None, 0, heuristic(start, goal, h_method)))
 
     while unexplored:
         state = heapq.heappop(unexplored)
         visited.append(state)
 
-        if len(visited) % (limit/10) == 0:
-            print('States visited:', len(visited))
-            print('Queue size:', len(unexplored))
         if len(visited) == limit:
             print('-' * 7)
             print('{:,} states visited without finding solution. Exiting.'.format(limit))
@@ -36,12 +36,12 @@ def informed_search(start, goal=tuple(range(9)), limit=10000):
             break
 
         if state.h == 0:
-            return moves_list(state, moves)
+            return moves_list(state, moves), len(visited)
         else:
             # Add board states of valid possible moves to unexplored queue
-            expand_state(state, goal, visited, unexplored)
+            expand_state(state, goal, visited, unexplored, h_method)
 
-    return None
+    return None, len(visited)
 
 
 def moves_list(state, moves):
@@ -84,7 +84,7 @@ def heuristic(current, goal, method='manhattan'):
     return total
 
 
-def expand_state(state, goal, visited, unexplored):
+def expand_state(state, goal, visited, unexplored, h_method):
     """
         Given a state, push the board states of its valid possible moves to unexplored queue.
         Possible moves = swapping the blank tile with one of its neighboring tiles.
@@ -102,7 +102,7 @@ def expand_state(state, goal, visited, unexplored):
 
     for s in state.moves():
         # Path cost of new board state is the path cost to the parent state + 1
-        temp_state = State(s, state, state.g + 1, heuristic(s, goal))
+        temp_state = State(s, state, state.g + 1, heuristic(s, goal, h_method))
 
         duplicate_board_states = [x for x in unexplored if x.values == s]
         if duplicate_board_states:
@@ -131,14 +131,15 @@ def main():
     print('\n'.join(' '.join(str(x) if x != 0 else '_' for x in start[n:n+3]) for n in range(0, 9, 3)))
     print('-' * 7)
 
-    solution = informed_search(start)
+    solution, num_states = informed_search(start)
+    print('Number of states expanded:', num_states)
     print('-' * 7)
 
     if solution is None:
         print('No path found.')
     else:
         open(fname, 'w').close()  # Clear file from previous runs
-
+        print('Number of moves:', len(solution) - 1)
         for state in solution[::-1]:
             state.output_board(fname)
             print(state)
@@ -146,8 +147,6 @@ def main():
 
         with open(fname, 'a') as f:
             f.write('Number of moves: {}'.format(len(solution) - 1))
-
-        print('Number of moves:', len(solution) - 1)
 
 
 if __name__ == '__main__':
