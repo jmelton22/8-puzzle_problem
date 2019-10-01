@@ -44,6 +44,16 @@ def informed_search(start, goal=tuple(range(9)), limit=10000, h_method='manhatta
     return None, len(visited)
 
 
+def count_inversions(nums):
+    count = 0
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] > nums[j]:
+                count += 1
+
+    return count
+
+
 def moves_list(state, moves):
     """
         Recursive function to determine the move-set from the goal state to the starting state
@@ -115,9 +125,9 @@ def expand_state(state, goal, visited, unexplored, h_method):
 
 def main():
     # Generate random starting board
-    # start = list(range(9))
-    # shuffle(start)
-    # fname = 'moves.txt'
+    start = list(range(9))
+    shuffle(start)
+    fname = 'moves.txt'
 
     # Case 1 from assignment
     # start = [2, 8, 3, 1, 6, 4, 7, 0, 5]
@@ -125,28 +135,33 @@ def main():
     # fname = 'moves1.txt'
 
     # Case 2 from assignment (default goal)
-    start = [7, 2, 4, 5, 0, 6, 8, 3, 1]
-    fname = 'moves2.txt'
+    # start = [7, 2, 4, 5, 0, 6, 8, 3, 1]
+    # fname = 'moves2.txt'
 
     print('\n'.join(' '.join(str(x) if x != 0 else '_' for x in start[n:n+3]) for n in range(0, 9, 3)))
     print('-' * 7)
 
-    solution, num_states = informed_search(start)
-    print('Number of states expanded:', num_states)
-    print('-' * 7)
-
-    if solution is None:
-        print('No path found.')
+    inv_count = count_inversions(start)
+    print('Number of inversions:', inv_count)
+    if inv_count % 2 != 0:
+        print('Odd number of inversions. Board is not solvable.')
     else:
-        open(fname, 'w').close()  # Clear file from previous runs
-        print('Number of moves:', len(solution) - 1)
-        for state in solution[::-1]:
-            state.output_board(fname)
-            print(state)
-            print()
+        solution, num_states = informed_search(start)
+        print('Number of states expanded:', num_states)
+        print('-' * 7)
 
-        with open(fname, 'a') as f:
-            f.write('Number of moves: {}'.format(len(solution) - 1))
+        if solution is None:
+            print('No solution found.')
+        else:
+            open(fname, 'w').close()  # Clear file from previous runs
+            print('Number of moves:', len(solution) - 1)
+            for state in solution[::-1]:
+                state.output_board(fname)
+                print(state)
+                print()
+
+            with open(fname, 'a') as f:
+                f.write('Number of moves: {}'.format(len(solution) - 1))
 
 
 if __name__ == '__main__':
