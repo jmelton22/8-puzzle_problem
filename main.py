@@ -14,7 +14,8 @@ def informed_search(start, goal=tuple(range(9)), limit=10000, h_method='manhatta
     :return: if goal state is reached, returns a list of board states back to the starting state.
              if queue is empty without reaching goal state, returns None.
     """
-    visited, unexplored, moves = [], [], []
+    visited = set()  # TODO: 'in' operator more efficient for set than list
+    unexplored, moves = [], []
     print('Search method: A*')
     print('Heuristic:', h_method)
 
@@ -22,18 +23,18 @@ def informed_search(start, goal=tuple(range(9)), limit=10000, h_method='manhatta
 
     while unexplored:
         state = heapq.heappop(unexplored)
-        visited.append(state)
+        visited.add(tuple(state.values))
 
-        if len(visited) == limit:
-            print('-' * 7)
-            print('{:,} states visited without finding solution. Exiting.'.format(limit))
-
-            min_state = min(visited, key=lambda x: x.h)
-
-            print('Minimum h reached:', min_state.h)
-            print(min_state)
-            print('Number of moves:', min_state.g)
-            break
+        # if len(visited) == limit:
+        #     print('-' * 7)
+        #     print('{:,} states visited without finding solution. Exiting.'.format(limit))
+        #
+        #     min_state = min(visited, key=lambda x: x.h)
+        #
+        #     print('Minimum h reached:', min_state.h)
+        #     print(min_state)
+        #     print('Number of moves:', min_state.g)
+        #     break
 
         if state.h == 0:
             return moves_list(state, moves), len(visited)
@@ -104,12 +105,6 @@ def expand_state(state, goal, visited, unexplored, h_method):
         - In which case, the board state with higher path cost is removed from queue and
         the new board state is pushed to the queue
     """
-    def in_unexplored(current, q):
-        return current in [x.values for x in q]
-
-    def in_visited(current, l):
-        return current in [x.values for x in l]
-
     for s in state.moves():
         # Path cost of new board state is the path cost to the parent state + 1
         temp_state = State(s, state, state.g + 1, heuristic(s, goal, h_method))
@@ -119,7 +114,7 @@ def expand_state(state, goal, visited, unexplored, h_method):
             for duplicate in (x for x in duplicate_board_states if x.f > temp_state.f):
                 unexplored.remove(duplicate)
                 heapq.heappush(unexplored, temp_state)
-        elif not in_visited(s, visited):
+        elif tuple(s) not in visited:
             heapq.heappush(unexplored, temp_state)
 
 

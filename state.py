@@ -32,6 +32,7 @@ class State:
                       6: [3, 7],
                       7: [4, 6, 8],
                       8: [5, 7]}
+        # TODO: Update to use yield?
         moves = []
         for move in moves_dict[z]:
             new_state = self.values[:]  # Create copy of initial board state
