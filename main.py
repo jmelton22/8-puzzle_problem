@@ -14,7 +14,7 @@ def informed_search(start, goal=tuple(range(9)), limit=10000, h_method='manhatta
     :return: if goal state is reached, returns a list of board states back to the starting state.
              if queue is empty without reaching goal state, returns None.
     """
-    visited = set()  # TODO: 'in' operator more efficient for set than list
+    visited = set()  # TODO: 'in' operator more efficient for set than list?
     unexplored, moves = [], []
     print('Search method: A*')
     print('Heuristic:', h_method)
@@ -25,16 +25,10 @@ def informed_search(start, goal=tuple(range(9)), limit=10000, h_method='manhatta
         state = heapq.heappop(unexplored)
         visited.add(tuple(state.values))
 
-        # if len(visited) == limit:
-        #     print('-' * 7)
-        #     print('{:,} states visited without finding solution. Exiting.'.format(limit))
-        #
-        #     min_state = min(visited, key=lambda x: x.h)
-        #
-        #     print('Minimum h reached:', min_state.h)
-        #     print(min_state)
-        #     print('Number of moves:', min_state.g)
-        #     break
+        if len(visited) == limit:
+            print('-' * 7)
+            print('{:,} states visited without finding solution. Exiting.'.format(limit))
+            break
 
         if state.h == 0:
             return moves_list(state, moves), len(visited)
